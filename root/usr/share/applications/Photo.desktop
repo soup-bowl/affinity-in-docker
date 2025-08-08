@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Affinity Photo 2
+Exec=wine "/wineabc/drive_c/Program Files/Affinity/Photo 2/Photo.exe"
+Type=Application
+StartupNotify=true
+Path=/wineabc/drive_c/Program Files/Affinity/Photo 2
+Icon=/wineabc/drive_c/Program Files/Affinity/Photo 2/logo.png
+Categories=Graphics;

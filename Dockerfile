@@ -102,7 +102,8 @@ FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
 
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install  --no-install-recommends -y \
     cabextract \
     curl \
     libfreetype6 \
@@ -133,6 +134,10 @@ RUN dpkg --add-architecture i386 && \
     libxrender1:i386 \
     unzip \
     winbind \
+    xfce4 \
+    xfce4-terminal \
+    xubuntu-default-settings \
+    xubuntu-icon-theme \
     zenity \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -141,7 +146,10 @@ RUN dpkg --add-architecture i386 && \
     chmod +x winetricks && \
     mv winetricks /usr/local/bin/ && \
     # Give the web view the SerifLabs icon - make it more recognisable.
-    curl -o /usr/share/selkies/www/icon.png https://affinity.serif.com/favicon-16.png
+    curl -o /usr/share/selkies/www/icon.png https://affinity.serif.com/favicon-16.png && \
+    # XFCE4 Stuff
+    rm -f /etc/xdg/autostart/xscreensaver.desktop && \
+    mv /usr/bin/thunar /usr/bin/thunar-real
 
 COPY --from=build /opt/wine /opt/wine
 COPY --from=build --chown=1000:1000 /wineabc /wineabc
@@ -151,7 +159,6 @@ COPY --chown=1000:1000 WinMetadata /wineabc/drive_c/windows/system32/WinMetadata
 COPY /root /
 
 ENV TITLE="Affinity Suite" \
-    NO_FULL=1 \
     PATH="/opt/wine/bin:$PATH" \
     WINEPREFIX="/wineabc" \
     WINE="/opt/wine/bin/wine"
