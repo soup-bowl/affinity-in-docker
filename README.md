@@ -31,6 +31,7 @@ docker run -d \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=Etc/UTC \
+  -v "$(pwd):/config/Documents" \
   -p 3000:3000 \
   affinity-web
 ```
