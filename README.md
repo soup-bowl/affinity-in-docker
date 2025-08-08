@@ -7,7 +7,7 @@
 To fix:
 * [x] "cannot communicate with other affinity apps" CTD on open.
 * [ ] No file explorer functionality.
-* [ ] Better desktop experience(?).
+* [x] Better desktop experience(?).
 
 ## Building
 
