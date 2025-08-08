@@ -4,5 +4,5 @@ Exec=wine "/wineabc/drive_c/Program Files/Affinity/Publisher 2/Publisher.exe"
 Type=Application
 StartupNotify=true
 Path=/wineabc/drive_c/Program Files/Affinity/Publisher 2
-Icon="/wineabc/drive_c/Program Files/Affinity/Publisher 2/logo.png"
+Icon=/wineabc/drive_c/Program Files/Affinity/Publisher 2/logo.png
 Categories=Graphics;
