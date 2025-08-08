@@ -148,7 +148,8 @@ RUN dpkg --add-architecture i386 && \
     # Give the web view the SerifLabs icon - make it more recognisable.
     curl -o /usr/share/selkies/www/icon.png https://affinity.serif.com/favicon-16.png && \
     # XFCE4 Stuff
-    rm -f /etc/xdg/autostart/xscreensaver.desktop
+    rm -f /etc/xdg/autostart/xscreensaver.desktop && \
+    mv /usr/bin/thunar /usr/bin/thunar-real
 
 COPY --from=build /opt/wine /opt/wine
 COPY --from=build --chown=1000:1000 /wineabc /wineabc
