@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Affinity Designer 2
+Exec=wine "/wineabc/drive_c/Program Files/Affinity/Designer 2/Designer.exe"
+Type=Application
+StartupNotify=true
+Path=/wineabc/drive_c/Program Files/Affinity/Designer 2
+Icon="/wineabc/drive_c/Program Files/Affinity/Designer 2/logo.png"
+Categories=Graphics;
