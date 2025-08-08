@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openbox_menu xmlns="http://openbox.org/3.4/menu">
+<menu id="root-menu" label="MENU">
+<item label="Affinity Designer 2" icon="/wineabc/drive_c/Program Files/Affinity/Designer 2/logo.png"><action name="Execute"><command>wine "/wineabc/drive_c/Program Files/Affinity/Designer 2/Designer.exe"</command></action></item>
+<item label="Affinity Photo 2" icon="/wineabc/drive_c/Program Files/Affinity/Photo 2/logo.png"><action name="Execute"><command>wine "/wineabc/drive_c/Program Files/Affinity/Photo 2/Photo.exe"</command></action></item>
+<item label="Affinity Publisher 2" icon="/wineabc/drive_c/Program Files/Affinity/Publisher 2/logo.png"><action name="Execute"><command>wine "/wineabc/drive_c/Program Files/Affinity/Publisher 2/Publisher.exe"</command></action></item>
+<item label="xterm" icon="/usr/share/pixmaps/xterm-color_48x48.xpm"><action name="Execute"><command>/usr/bin/xterm</command></action></item>
+</menu>
+</openbox_menu>
