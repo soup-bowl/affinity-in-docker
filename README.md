@@ -13,7 +13,7 @@ To fix:
 
 To build you need to:
 
-* Put the Affinity MSIX files in the Affinity directory.
+* Put the [Affinity **MSIX** files](https://store.serif.com/en-gb/account/licences/) in the Affinity directory.
 * From a legitimate copy of Windows 10^, copy the contents of `C:\Windows\System32\WinMetadata` to `WinMetadata` folder.
   * Just grab a [Windows 10 ISO](https://www.microsoft.com/en-gb/software-download/windows10ISO) and run it in a VM, grab the files and bin it.
 
