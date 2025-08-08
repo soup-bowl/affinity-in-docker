@@ -155,7 +155,6 @@ COPY --from=build /opt/wine /opt/wine
 COPY --from=build --chown=1000:1000 /wineabc /wineabc
 COPY --from=unpack --chown=1000:1000 ["/affinity_unpack", "/wineabc/drive_c/Program Files/Affinity/"]
 COPY --chown=1000:1000 WinMetadata /wineabc/drive_c/windows/system32/WinMetadata
-COPY  app /usr/share/applications/Affinity
 
 COPY /root /
 
