@@ -40,9 +40,9 @@ RUN dpkg --add-architecture i386 && \
     mv winetricks /usr/local/bin/ && \
     mkdir -p /wineabc && \
     # Setup special Wine build for Affinity
-    git clone https://gitlab.winehq.org/ElementalWarrior/wine.git && \
-	cd wine && \
-	git checkout affinity-photo2
+    git clone --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git && \
+    cd wine && \
+    git checkout affinity-photo2
 
 ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
 
@@ -67,11 +67,7 @@ ENV PATH="/opt/wine/bin:$PATH" \
     WINEPREFIX="/wineabc" \
     WINE="/opt/wine/bin/wine"
 
-RUN curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
-    chmod +x winetricks && \
-    mv winetricks /usr/local/bin/ && \
-    mkdir -p /wineabc && \
-    wineboot && \
+RUN wineboot && \
     winetricks -q dotnet48 corefonts renderer=vulkan
     
 FROM docker.io/library/ubuntu:noble AS unpack
@@ -86,16 +82,16 @@ COPY Affinity /affinity
 RUN cd /affinity && \
     mkdir affinity_unpack && \
     for app in designer photo publisher; do \
-        msix_file=$(ls affinity-${app}-*.msix | head -n 1); \
-        [ -f "$msix_file" ] || { echo "MSIX file for $app not found!"; exit 1; }; \
-        unpack_dir="/tmp/affinity-unpack-$app"; \
-        install_dir="/affinity_unpack/$(echo $app | sed 's/.*/\u&/') 2"; \
+        msix_file=$(ls affinity-${app}-*.msix | head -n 1) && \
+        [ -f "$msix_file" ] && \
+        unpack_dir="/tmp/affinity-unpack-$app" && \
+        install_dir="/affinity_unpack/$(echo $app | sed 's/.*/\u&/') 2" && \
         mkdir -p "$unpack_dir" && \
         unzip "$msix_file" -d "$unpack_dir" && \
         mkdir -p "$install_dir" && \
         mv "$unpack_dir/App/"* "$install_dir/" && \
         cp "$unpack_dir/Package/AppLogo.targetsize-48.png" "$install_dir/logo.png" && \
-        rm -rf "$unpack_dir"; \
+        rm -rf "$unpack_dir" || { echo "MSIX file for $app not found!"; exit 1; }; \
     done
 
 FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
