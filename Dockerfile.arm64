@@ -1,0 +1,125 @@
+FROM docker.io/library/ubuntu:noble AS build
+
+RUN apt-get update && \
+    apt-get install -y \
+    bison \
+    build-essential \
+    cabextract \
+    curl \
+    flex \
+    git \
+    libfreetype6-dev \
+    libgcrypt20-dev \
+    libgnutls28-dev \
+    libx11-dev \
+    nettle-dev \
+    pkg-config \
+    clang lld llvm mingw-w64 libxrandr-dev \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Setup special Wine build for Affinity
+    git clone -b affinity-photo2 --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git wine && \
+	cd wine
+
+# Prep 64-bit ARM Wine
+RUN mkdir /wine64 && \
+    cd /wine64 && \
+    ../wine/configure --prefix=/opt/wine --enable-win64 && \
+    make -j$(nproc) && \
+    cd /wine64 && \
+    make install
+
+FROM build AS build-modified
+
+ENV PATH="/opt/wine/bin:$PATH" \
+    WINEPREFIX="/wineabc" \
+    WINE="/opt/wine/bin/wine"
+
+RUN curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
+    chmod +x winetricks && \
+    mv winetricks /usr/local/bin/ && \
+    mkdir -p /wineabc && \
+    wineboot
+    #winetricks -q corefonts
+    #winetricks -q wine-mono corefonts renderer=vulkan
+    
+FROM docker.io/library/ubuntu:noble AS unpack
+
+RUN apt-get update && \
+    apt-get install -y \
+    unzip \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY Affinity /affinity
+RUN cd /affinity && \
+    mkdir affinity_unpack && \
+    for app in designer photo publisher; do \
+        msix_file=$(ls affinity-${app}-*.msix | head -n 1); \
+        [ -f "$msix_file" ] || { echo "MSIX file for $app not found!"; exit 1; }; \
+        unpack_dir="/tmp/affinity-unpack-$app"; \
+        install_dir="/affinity_unpack/$(echo $app | sed 's/.*/\u&/') 2"; \
+        mkdir -p "$unpack_dir" && \
+        unzip "$msix_file" -d "$unpack_dir" && \
+        mkdir -p "$install_dir" && \
+        mv "$unpack_dir/App/"* "$install_dir/" && \
+        cp "$unpack_dir/Package/AppLogo.targetsize-48.png" "$install_dir/logo.png" && \
+        rm -rf "$unpack_dir"; \
+    done
+
+FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install  --no-install-recommends -y \
+    cabextract \
+    curl \
+    libfreetype6 \
+    libgcrypt20 \
+    libgl1 \
+    libglu1-mesa \
+    libgnutls30 \
+    libhogweed6 \
+    libnettle8 \
+    libx11-6 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxext6 \
+    libxi6 \
+    libxinerama1 \
+    libxrandr2 \
+    libxrender1 \
+    unzip \
+    winbind \
+    xfce4 \
+    xfce4-terminal \
+    xubuntu-default-settings \
+    xubuntu-icon-theme \
+    zenity \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    # Install Winetricks
+    curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
+    chmod +x winetricks && \
+    mv winetricks /usr/local/bin/ && \
+    # Give the web view the SerifLabs icon - make it more recognisable.
+    curl -o /usr/share/selkies/www/icon.png https://affinity.serif.com/favicon-16.png && \
+    # XFCE4 Stuff
+    rm -f /etc/xdg/autostart/xscreensaver.desktop && \
+    mv /usr/bin/thunar /usr/bin/thunar-real
+
+COPY --from=build /opt/wine /opt/wine
+COPY --from=build-modified --chown=1000:1000 /wineabc /wineabc
+COPY --from=unpack --chown=1000:1000 ["/affinity_unpack", "/wineabc/drive_c/Program Files/Affinity/"]
+COPY --chown=1000:1000 WinMetadata /wineabc/drive_c/windows/system32/WinMetadata
+
+COPY /root /
+
+ENV TITLE="Affinity Suite" \
+    PATH="/opt/wine/bin:$PATH" \
+    WINEPREFIX="/wineabc" \
+    WINE="/opt/wine/bin/wine"
+
+EXPOSE 3000
+
+VOLUME /config
