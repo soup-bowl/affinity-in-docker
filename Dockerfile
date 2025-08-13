@@ -1,4 +1,4 @@
-FROM docker.io/library/ubuntu:noble AS build
+FROM docker.io/library/ubuntu:noble AS winebuild
 
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
@@ -34,15 +34,9 @@ RUN dpkg --add-architecture i386 && \
     pkg-config \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    # Install Winetricks
-    curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
-    chmod +x winetricks && \
-    mv winetricks /usr/local/bin/ && \
-    mkdir -p /wineabc && \
     # Setup special Wine build for Affinity
-    git clone --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git && \
-    cd wine && \
-    git checkout affinity-photo2
+    git clone -b affinity-photo2 --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git wine && \
+    cd wine
 
 ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
 
@@ -61,6 +55,13 @@ RUN mkdir /wine64 && \
     make install && \
     cd /wine32 && \
     make install
+
+FROM winebuild AS wineprep
+
+RUN curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
+    chmod +x winetricks && \
+    mv winetricks /usr/local/bin/ && \
+    mkdir -p /wineabc
 
 # Setup the Wineprefix
 ENV PATH="/opt/wine/bin:$PATH" \
@@ -147,8 +148,8 @@ RUN dpkg --add-architecture i386 && \
     rm -f /etc/xdg/autostart/xscreensaver.desktop && \
     mv /usr/bin/thunar /usr/bin/thunar-real
 
-COPY --from=build /opt/wine /opt/wine
-COPY --from=build --chown=1000:1000 /wineabc /wineabc
+COPY --from=winebuild /opt/wine /opt/wine
+COPY --from=wineprep --chown=1000:1000 /wineabc /wineabc
 COPY --from=unpack --chown=1000:1000 ["/affinity_unpack", "/wineabc/drive_c/Program Files/Affinity/"]
 COPY --chown=1000:1000 WinMetadata /wineabc/drive_c/windows/system32/WinMetadata
 
