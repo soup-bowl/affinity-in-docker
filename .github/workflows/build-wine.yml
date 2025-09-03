@@ -37,3 +37,5 @@ jobs:
           tags: >
             ghcr.io/${{ github.repository }}/wine:latest,
             ghcr.io/${{ github.repository }}/wine:elementalwarrior
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
