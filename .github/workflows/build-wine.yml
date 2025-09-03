@@ -3,6 +3,9 @@ name: Build and Push affinity-wine to GHCR
 on:
   push:
     branches: [ main ]
+    paths:
+      - Dockerfile.wine
+      - .github/workflows/build-wine.yml
   workflow_dispatch:
 
 jobs:
@@ -33,4 +36,4 @@ jobs:
           push: true
           tags: >
             ghcr.io/${{ github.repository }}/wine:latest,
-            ghcr.io/${{ github.repository }}/affinity-in-docker/wine:elementalwarrior
+            ghcr.io/${{ github.repository }}/wine:elementalwarrior
