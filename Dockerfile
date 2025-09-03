@@ -2,9 +2,10 @@ FROM docker.io/library/ubuntu:noble AS winebuild
 
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    apt-get install -y \
+    apt-get install --no-install-recommends -y \
     bison \
     build-essential \
+    ca-certificates \
     cabextract \
     curl \
     flex \
@@ -35,26 +36,26 @@ RUN dpkg --add-architecture i386 && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     # Setup special Wine build for Affinity
-    git clone -b affinity-photo2 --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git wine && \
-    cd wine
+    git clone -b affinity-photo2 --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git wine
+WORKDIR /wine
 
 ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
 
 # Prep 64-bit Wine
-RUN mkdir /wine64 && \
-    cd /wine64 && \
-    ../wine/configure --prefix=/opt/wine --enable-win64 && \
-    make -j$(nproc) && \
-    # Prep 32-bit Wine
-    mkdir /wine32 && \
-    cd /wine32 && \
-    ../wine/configure --prefix=/opt/wine --with-wine64=../wine64 --enable-win32 && \
-    make -j$(nproc) && \
-    # Install Wine
-    cd /wine64 && \
-    make install && \
-    cd /wine32 && \
-    make install
+RUN mkdir /wine32 /wine64
+WORKDIR /wine64
+RUN ../wine/configure --prefix=/opt/wine --enable-win64 && \
+    make -j"$(nproc)"
+# Prep 32-bit Wine
+WORKDIR /wine32
+RUN ../wine/configure --prefix=/opt/wine --with-wine64=../wine64 --enable-win32 && \
+    make -j"$(nproc)"
+
+# Install Wine
+WORKDIR /wine64
+RUN make install
+WORKDIR /wine32
+RUN make install
 
 FROM winebuild AS wineprep
 
@@ -73,16 +74,19 @@ RUN wineboot && \
     
 FROM docker.io/library/ubuntu:noble AS unpack
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 RUN apt-get update && \
-    apt-get install -y \
+    apt-get install --no-install-recommends -y \
     unzip \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY Affinity /affinity
-RUN cd /affinity && \
-    mkdir affinity_unpack && \
-    for app in designer photo publisher; do \
+
+RUN mkdir affinity_unpack
+WORKDIR /affinity
+RUN for app in designer photo publisher; do \
         msix_file=$(ls affinity-${app}-*.msix | head -n 1) && \
         [ -f "$msix_file" ] && \
         unpack_dir="/tmp/affinity-unpack-$app" && \
@@ -100,7 +104,7 @@ FROM ghcr.io/linuxserver/baseimage-selkies:ubuntunoble
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
-    apt-get install  --no-install-recommends -y \
+    apt-get install --no-install-recommends -y \
     cabextract \
     curl \
     libfreetype6 \
