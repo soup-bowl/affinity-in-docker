@@ -1,63 +1,4 @@
-FROM docker.io/library/ubuntu:noble AS winebuild
-
-RUN dpkg --add-architecture i386 && \
-	apt-get update && \
-	apt-get install --no-install-recommends -y \
-	bison \
-	build-essential \
-	ca-certificates \
-	cabextract \
-	curl \
-	flex \
-	g++-multilib \
-	gcc-multilib \
-	git \
-	libc6-dev-i386 \
-	libfreetype6-dev \
-	libfreetype6-dev:i386 \
-	libgcrypt20-dev \
-	libgl1-mesa-dev:i386 \
-	libglu1-mesa-dev:i386 \
-	libgnutls28-dev \
-	libgnutls28-dev:i386 \
-	libx11-dev \
-	libx11-dev:i386 \
-	libxcomposite-dev:i386 \
-	libxcursor-dev:i386 \
-	libxext-dev:i386 \
-	libxi-dev:i386 \
-	libxinerama-dev:i386 \
-	libxrandr-dev:i386 \
-	libxrender-dev:i386 \
-	libxxf86vm-dev:i386 \
-	nettle-dev \
-	nettle-dev:i386 \
-	pkg-config \
-	&& apt-get clean && \
-	rm -rf /var/lib/apt/lists/* && \
-	# Setup special Wine build for Affinity
-	git clone -b affinity-photo2 --depth 1 https://gitlab.winehq.org/ElementalWarrior/wine.git wine
-WORKDIR /wine
-
-ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig
-
-# Prep 64-bit Wine
-RUN mkdir /wine32 /wine64
-WORKDIR /wine64
-RUN ../wine/configure --prefix=/opt/wine --enable-win64 && \
-	make -j"$(nproc)"
-# Prep 32-bit Wine
-WORKDIR /wine32
-RUN ../wine/configure --prefix=/opt/wine --with-wine64=../wine64 --enable-win32 && \
-	make -j"$(nproc)"
-
-# Install Wine
-WORKDIR /wine64
-RUN make install
-WORKDIR /wine32
-RUN make install
-
-FROM winebuild AS wineprep
+FROM ghcr.io/soup-bowl/affinity-in-docker/wine:latest AS wineprep
 
 RUN curl -O https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
 	chmod +x winetricks && \
@@ -152,7 +93,7 @@ RUN dpkg --add-architecture i386 && \
 	rm -f /etc/xdg/autostart/xscreensaver.desktop && \
 	mv /usr/bin/thunar /usr/bin/thunar-real
 
-COPY --from=winebuild /opt/wine /opt/wine
+COPY --from=wineprep /opt/wine /opt/wine
 COPY --from=wineprep --chown=1000:1000 /wineabc /wineabc
 COPY --from=unpack --chown=1000:1000 ["/affinity_unpack", "/wineabc/drive_c/Program Files/Affinity/"]
 COPY --chown=1000:1000 WinMetadata /wineabc/drive_c/windows/system32/WinMetadata
