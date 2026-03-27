@@ -2,6 +2,9 @@
 
 **State: Testing.**
 
+> [!IMPORTANT]  
+> Since Canva have bought and ended the Seriflabs version of this, this is now deprecated.
+
 <img width="1092" height="909" alt="" src="https://github.com/user-attachments/assets/4d8ffc77-1a91-45da-b318-9ee0c5a5014c" />
 
 To fix:
